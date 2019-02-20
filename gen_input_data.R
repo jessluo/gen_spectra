@@ -98,6 +98,12 @@ ss[str_detect(ss$sname, "diat"),"thetaC"] <- thetaC_coeff_diat * ss[str_detect(s
 
 ss$thetaN_max <- ss$thetaC * 6.625 # units of mg Chla / mmol N
 
+# override
+ss$thetaN_max[str_detect(ss$sname, 'p')] = 1.25 # pp/mp = sp
+ss$thetaN_max[str_detect(ss$sname, 'diat')] = 2.22 # diat
+ss$thetaN_max[str_detect(ss$sname, 'diaz')] = 1.9 # diaz
+ss$thetaC = ss$thetaN_max / 6.625
+
 tmp = ss[,c("sname", "mass_ugC", "thetaC", "thetaN_max")]
 tmp$thetaC_gg = tmp$thetaC / 12.011
 print(tmp)
@@ -106,14 +112,14 @@ print(tmp)
 ss$kNO3 <- kNO3_const*ss$vol_um3^kNO3_beta
 ss$kPO4 <- kPO4_const*ss$vol_um3^kPO4_beta
 
-ss[str_detect(ss$sname, "diat"),]$kNO3 = kNO3_const_diat*ss[str_detect(ss$sname, "diat"),"vol_um3"]^kNO3_beta_diat
-ss[str_detect(ss$sname, "diat"),]$kPO4 = kPO4_const_diat*ss[str_detect(ss$sname, "diat"),"vol_um3"]^kPO4_beta_diat
+ss[str_detect(ss$sname, "diat"),]$kNO3 = kNO3_const_diat*ss[str_detect(ss$sname, "diat"),"vol_um3"] ^ kNO3_beta_diat
+ss[str_detect(ss$sname, "diat"),]$kPO4 = kPO4_const_diat*ss[str_detect(ss$sname, "diat"),"vol_um3"] ^ kPO4_beta_diat
 
 ss[str_detect(ss$sname, "diaz"),]$kNO3 = kNO3_diaz
 
 # nutrient half-sat constant scalings
 ss$kSiO3 <- 0
-ss[str_detect(ss$sname, "diat"),]$kSiO3 <- kSiO3_const * ss[str_detect(ss$sname, "diat"),"vol_um3"] ^ nut_beta_diatoms
+ss[str_detect(ss$sname, "diat"),]$kSiO3 <- kSiO3_const * ss[str_detect(ss$sname, "diat"),"vol_um3"] ^ kSiO3_beta
 
 ss$kNH4 <- kNH4_const * ss$vol_um3 ^ nut_beta_generic
 ss[str_detect(ss$sname, "diat"),]$kNH4 = kNH4_const_diat * ss[str_detect(ss$sname, "diat"),"vol_um3"] ^ nut_beta_diatoms

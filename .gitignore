@@ -1,5 +1,10 @@
 *.Rproj*
 plots/*
 data/*
+test_cases/plots/*
+test_cases/data/*
+
 *.input
 
+.Rproj.user
+.Rhistory

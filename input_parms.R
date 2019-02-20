@@ -84,7 +84,8 @@ Qp_fixed_pp = 0.004651163
 gQfe_min_diaz = 6E-6
 gQfe_min = 3E-6
 
-kSiO3_const <- 0.045
+kSiO3_beta <- 0.27
+kSiO3_const <- 0.1
 
 kNH4_const <- 0.006
 kNH4_const_diat <- kNH4_const * diatom_nut_lim_factor
@@ -133,13 +134,13 @@ zoo_detr_const = 0.3
 zoo_detr_beta = 0.2
 zoo_detr_diatom_scaling = 1.5
 
-graze_doc_beta <- 0.2
-graze_doc_const <- 0.1
+graze_doc_beta <- 0.15
+graze_doc_const <- 0.12
 
-graze_poc_beta <- 0.2
-graze_poc_const <- 0.29
-diat_graze_poc_beta <- 0.03
-diat_graze_poc_const <- 1.68
+graze_poc_beta <- 0.15
+graze_poc_const <- 0.3
+diat_graze_poc_beta <- 0.05
+diat_graze_poc_const <- 1.72
 
 opt_pred_prey_ratio = 10
 opt_pred_prey_sd_const = 9
