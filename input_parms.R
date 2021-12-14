@@ -150,12 +150,9 @@ graze_poc_diatom_scaling <- 1.2
 z_mort_beta <- -0.25 # McGurk et al. 1987 MEPS
 z_mort_const <- 0.12 # it was 0.02 initially. 
 
-#mesozoo_mort2_beta <- 0.2 # 
-#mesozoo_mort2_const <- 0.005 # 
 z_mort2_beta <- 0.2
 z_mort2_const <- 0.2
 
-#microzoo_mort2 = 0
 lg_zoo_mort2_scaling = 4
 
 zoo_loss_thres <- 0.075
