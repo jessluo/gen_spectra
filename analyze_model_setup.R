@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 
-setwd("/Users/jluo/Dropbox/Research/NCAR/models/MARBL-gen_inputs/scripts")
+#setwd("/Users/jluo/Dropbox/Research/NCAR/models/MARBL-gen_inputs/gen-spectra")
 
 library("ggplot2")
 library("plyr")
@@ -151,7 +151,7 @@ gf_umax$pred = factor(gf_umax$pred, levels=sz$sname)
 
 p6 <- ggplot(gf_umax) + geom_tile(aes(y=prey, x=pred, fill=umax)) + 
   geom_text(aes(y=prey, x=pred, label=ifelse(gf_umax$umax < 0.1, sprintf('%0.1e', gf_umax$umax), sprintf('%0.1f', gf_umax$umax)))) +
-  scale_fill_gradientn(colors=rev(brewer.pal(11,"Spectral")), na.value = 'grey50') + 
+  scale_fill_gradientn(colors=rev(brewer.pal(11,"Spectral")), na.value = 'grey50', limits=c(0,0.6)) + 
   labs(x="Predators", y="Prey", fill="Maximum\ngrazing rate") + scale_x_discrete(expand=c(0,0)) + scale_y_discrete(expand=c(0,0))
 
 ggsave("plots/Zoo_umax_grid.pdf", p6, height=7, width=6)
@@ -165,7 +165,7 @@ sz$pred_prey_sd = opt_pred_prey_sd_const * sz$ESD_mm ^ opt_pred_prey_sd_beta
 
 x=seq(0.1,30, by=0.1)
 
-plot(pnorm(x, mean=10, sd=sz$pred_prey_sd[1])~x, type='l')
+#plot(pnorm(x, mean=10, sd=sz$pred_prey_sd[1])~x, type='l')
 y = pnorm(abs(x-opt_pred_prey_ratio), mean=0, sd=sz$pred_prey_sd[1], lower=FALSE) * 2
 pdf("plots/dist_spectra.pdf",height=4,width=6)
 plot(y~x, type='l', ylab="SPECTRA pdf", xlab="Predator-prey size ratio")
@@ -182,7 +182,7 @@ pdf("plots/dist_laplace.pdf",height=4,width=6)
 plot(dlaplace(x,m=opt_pred_prey_ratio,s=sz$pred_prey_sd[1])~x, type='l', ylab = "Laplace pdf", xlab="Predator-prey size ratio")
 dev.off()
 
-# # #
+### -- Code to generate the feeding kernel (before adjustments) -- ### 
 fk = data.frame(x= rep(x, times=nrow(sz)))
 fk$sname = rep(sz$sname, each=length(x))
 #fk$sname = factor(fk$sname)
