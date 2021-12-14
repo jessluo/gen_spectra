@@ -18,8 +18,8 @@ nMP <- ceiling((nP-2)/2)
 nDIAT <- floor((nP-2)/2)
 nMP_PP <- nMP + 1
 
-mp_sizes <- 10^(seq(from=-0.14267, to=2.9031, len=nMP_PP))
-diat_sizes <- 10^(seq(from=1.301, to=2.60206, len=nDIAT))
+mp_sizes <- 10^(seq(from=-0.14267, to=2.60206, len=nMP_PP))
+diat_sizes <- 10^(seq(from=1.301, to=2.30103, len=nDIAT))
 
 mp_sname <- str_c("mp", seq_len(nMP))
 diat_sname <- str_c("diat", seq_len(nDIAT))
@@ -71,7 +71,6 @@ ss[str_detect(ss$sname, "mp") & ss$ESD_um >= 10 & ss$vol_um3 < 3000,"mass_ugC"] 
 ss$mass_umolC <- ss$mass_ugC / 12.011
 
 
-
 # --- temperature and growth rate ---
 PCref <- data.frame(sname=c("pp", "diaz", "mp1"), PCref_const=c(PCref_const_pp, PCref_const_diaz, PCref_const_mp1))
 PCref <- rbind(PCref, data.frame(sname=mp_sname[2:length(mp_sname)], PCref_const=PCref_const_mp),
@@ -81,7 +80,7 @@ PCref$sname <- factor(PCref$sname, levels=c("diaz", "pp", mp_sname, diat_sname))
 
 ss$Ea <- ifelse(ss$sname=="pp", Ea_pp, Ea)
 ss$PCref_beta <- ifelse(ss$sname %in% c("pp", "mp1"), PCref_beta_pp_mp1, PCref_beta)
-
+ss[str_detect(ss$sname, "diat"),"PCref_beta"] <- PCref_beta_diat
 
 ss <- left_join(ss, PCref, by="sname")
 
@@ -90,19 +89,25 @@ ss$PCref_per_day <- exp(ss$PCref_beta * log(ss$mass_ugC) - ss$Ea * (1/(K*(Tref+2
 
 # --- photosynthesis parameters ---
 ss$alphaPI_per_day <- alphaPI_const * ss$vol_um3^(alphaPI_beta)
+# different scaling for diatoms
+ss[str_detect(ss$sname,"diat"),"alphaPI_per_day"] <- alphaPI_diat_const * ss[str_detect(ss$sname,"diat"),]$vol_um3 ^ (alphaPI_diat_beta)
 
-ss$thetaC <- thetaC_coeff_lg*(ss$vol_um3)^thetaC_beta_lg #units of mg Chla / mmol C
-ss[ss$ESD_um < 5, "thetaC"] = thetaC_coeff_sm*(ss[ss$ESD_um < 5, "vol_um3"]^thetaC_beta_sm)
-ss[str_detect(ss$sname, "diat"),"thetaC"] <- thetaC_coeff_diat * ss[str_detect(ss$sname, "diat"),"vol_um3"]^thetaC_beta_diat
 
+
+#ss$thetaC <- thetaC_coeff_lg*(ss$vol_um3)^thetaC_beta_lg #units of mg Chla / mmol C
+#ss[ss$ESD_um < 5, "thetaC"] = thetaC_coeff_sm*(ss[ss$ESD_um < 5, "vol_um3"]^thetaC_beta_sm)
+#ss[str_detect(ss$sname, "diat"),"thetaC"] <- thetaC_coeff_diat * ss[str_detect(ss$sname, "diat"),"vol_um3"]^thetaC_beta_diat
+
+ss$thetaC <- ss$alphaPI_per_day*thetaC_alpha_beta + thetaC_alpha_const
+ss[str_detect(ss$sname, "diat"),"thetaC"] <- ss[str_detect(ss$sname, "diat"),"alphaPI_per_day"]*thetaC_alpha_beta_diat + thetaC_alpha_const_diat
 
 ss$thetaN_max <- ss$thetaC * 6.625 # units of mg Chla / mmol N
 
 # override
-ss$thetaN_max[str_detect(ss$sname, 'p')] = 1.25 # pp/mp = sp
-ss$thetaN_max[str_detect(ss$sname, 'diat')] = 2.22 # diat
-ss$thetaN_max[str_detect(ss$sname, 'diaz')] = 1.9 # diaz
-ss$thetaC = ss$thetaN_max / 6.625
+#ss$thetaN_max[str_detect(ss$sname, 'p')] = 1.25 # pp/mp = sp
+#ss$thetaN_max[str_detect(ss$sname, 'diat')] = 2.22 # diat
+#ss$thetaN_max[str_detect(ss$sname, 'diaz')] = 1.9 # diaz
+#ss$thetaC = ss$thetaN_max / 6.625
 
 tmp = ss[,c("sname", "mass_ugC", "thetaC", "thetaN_max")]
 tmp$thetaC_gg = tmp$thetaC / 12.011
@@ -112,14 +117,14 @@ print(tmp)
 ss$kNO3 <- kNO3_const*ss$vol_um3^kNO3_beta
 ss$kPO4 <- kPO4_const*ss$vol_um3^kPO4_beta
 
-ss[str_detect(ss$sname, "diat"),]$kNO3 = kNO3_const_diat*ss[str_detect(ss$sname, "diat"),"vol_um3"] ^ kNO3_beta_diat
-ss[str_detect(ss$sname, "diat"),]$kPO4 = kPO4_const_diat*ss[str_detect(ss$sname, "diat"),"vol_um3"] ^ kPO4_beta_diat
+ss[str_detect(ss$sname, "diat"),]$kNO3 = kNO3_const_diat*ss[str_detect(ss$sname, "diat"),"vol_um3"]^kNO3_beta_diat
+ss[str_detect(ss$sname, "diat"),]$kPO4 = kPO4_const_diat*ss[str_detect(ss$sname, "diat"),"vol_um3"]^kPO4_beta_diat
 
 ss[str_detect(ss$sname, "diaz"),]$kNO3 = kNO3_diaz
 
 # nutrient half-sat constant scalings
 ss$kSiO3 <- 0
-ss[str_detect(ss$sname, "diat"),]$kSiO3 <- kSiO3_const * ss[str_detect(ss$sname, "diat"),"vol_um3"] ^ kSiO3_beta
+ss[str_detect(ss$sname, "diat"),]$kSiO3 <- kSiO3_const * ss[str_detect(ss$sname, "diat"),"vol_um3"] ^ nut_beta_diatoms
 
 ss$kNH4 <- kNH4_const * ss$vol_um3 ^ nut_beta_generic
 ss[str_detect(ss$sname, "diat"),]$kNH4 = kNH4_const_diat * ss[str_detect(ss$sname, "diat"),"vol_um3"] ^ nut_beta_diatoms
@@ -130,22 +135,6 @@ ss$kDOP <- kDOP_const * ss$vol_um3 ^ nut_beta_generic
 ss[str_detect(ss$sname, "diat"),]$kDOP = kDOP_const_diat * ss[str_detect(ss$sname, "diat"),"vol_um3"] ^ nut_beta_diatoms
 
 
-# #derivation of gQfe_0 and kFe, don't use
-# r <- 3.5/2
-# sa <- 4*pi*r^2
-# vol <- 4/3*pi*r^3
-# umolC <- vol^0.99*0.47*10^-6/12.011
-# Fe.umol_SA.um2 <- umolC / 10^6 * 120 / sa
-# Fe_umol <- Fe.umol_SA.um2 * ss$surf_area_um2
-#
-# ss$gQfe_0 <- Fe_umol / ss$mass_umolC
-# ss$kFe <- 0.51E-9 / (ss$surf_area_um2*1E-12) / 100 # not sure why kFe is so low, needs to divide by 100
-#
-# #convert to the same format as the others -- beta and const, for ease of manipulation
-# lm(log(ss$gQfe_0)~log(ss$mass_ugC))
-# lm(log(ss$kFe)~log(ss$mass_ugC))
-
-
 # --- stochiometry ---
 ss$Qp_fixed <- Qp_const * ss$mass_ugC ^ Qp_beta
 
@@ -153,16 +142,13 @@ ss[ss$sname=='diaz', "Qp_fixed"] <- Qp_fixed_diaz
 ss[ss$sname=='pp', "Qp_fixed"] <- Qp_fixed_pp
 
 ss$gQfe_min <- ifelse(ss$sname=="diaz", gQfe_min_diaz, gQfe_min)
-
-ss$gQfe_0 <- gQfe_const * ss$mass_ugC ^ gQfe_beta
-ss[str_detect(ss$sname, "diat"),]$gQfe_0 = ss[str_detect(ss$sname, "diat"),]$gQfe_0 * gQfe_diat_scaling
-
-# tmp = ss[,c("sname","gQfe_0")]
-# tmp$C_Fe = 1/tmp$gQfe_0
-# print(tmp)
+ss$gQfe_0 <- 2.5e-6
+#ss$gQfe_0 <- gQfe_const * ss$mass_ugC ^ gQfe_beta
+#ss[str_detect(ss$sname, "diat"),]$gQfe_0 = ss[str_detect(ss$sname, "diat"),]$gQfe_0 * gQfe_diat_scaling
 
 ss$kFe <- kFe_const * ss$vol_um3 ^ kFe_beta
 ss[str_detect(ss$sname, "diat"),]$kFe <- kFe_const_diat * ss[str_detect(ss$sname, "diat"),"vol_um3"] ^ kFe_beta_diat
+ss[str_detect(ss$sname, "diaz"),]$kFe <- ss[str_detect(ss$sname, "diaz"),]$kFe * diaz_Fe_lim_factor
 
 
 # loss scalings
@@ -172,7 +158,8 @@ ss$loss_thres2 <- ifelse(ss$sname=="diaz" , 0.001, 0)
 ss$temp_thres <- ifelse(ss$sname=="diaz", 15, -10)
 
 # mortality exponent
-ss$mort_per_day <- mort_const * ss$mass_ugC ^ mort_beta
+#ss$mort_per_day <- mort_const * ss$mass_ugC ^ mort_beta
+ss$mort_per_day <- ss$PCref_per_day * mort_PCref_factor
 ss$mort2_per_day <- mort2_const * ss$mass_ugC ^ mort2_beta
 
 ss$agg_rate_min <- agg_min_const * ss$mass_ugC ^ agg_min_beta
@@ -208,10 +195,19 @@ all(namelist_vars_autotrophs %in% names(ss))
 nZ = 6
 #zoo_sizes <- 10^(seq(from=-1.69897, to=1.30103, len=nZ)) # mm ESD
 #zoo_sizes <- 10^(seq(from=-1.82391, to=1.30103, len=nZ)) # mm ESD
-zoo_sizes <- 10^(seq(from=-2, to=1.30103, len=nZ)) # mm ESD
+zoo_sizes_log = seq(from=-2, to=1.30103, len=nZ)
+zoo_sizes = 10^(zoo_sizes_log) # mm ESD
 
-sz <- data.frame(ESD_mm=zoo_sizes, 
-	sname=str_c('zoo', seq_len(nZ)), stringsAsFactors=FALSE)
+# add in min and max zoo sizes within each bin
+dz = diff(zoo_sizes_log)[1]
+zoo_sizes_min = 10^(zoo_sizes_log-dz/2)
+zoo_sizes_max = 10^(zoo_sizes_log+dz/2)
+
+zoo_size_range = paste0('[',round(zoo_sizes_min,5),',',round(zoo_sizes_max,5),')')
+
+sz = data.frame(ESD_mm=zoo_sizes, 
+	sname=str_c('zoo', seq_len(nZ)),
+        size_range=zoo_size_range, stringsAsFactors=FALSE)
 
 nMicro = nrow(sz[sz$ESD_mm < 0.2,])
 nMeso = nrow(sz[sz$ESD_mm >= 0.2,])
@@ -277,6 +273,8 @@ for (m in 1:(nP+nZ)){
 
 # --- grazing preference ---
 pred_prey_sd = opt_pred_prey_sd_const * sz$ESD_mm ^ opt_pred_prey_sd_beta
+#opt_pred_prey_ratios = opt_pred_prey_ratio_const * sz$ESD_mm ^ opt_pred_prey_ratio_beta
+
 gf <- array(NA, dim=c(nP + nZ, nZ))
 
 for (z in 1:nZ){
@@ -284,14 +282,41 @@ for (z in 1:nZ){
 	mean=0, sd=pred_prey_sd[z], lower=FALSE) * 2
 }
 
-# gf <- pnorm(abs(g-opt_pred_prey_ratio),
-# 	mean=0, sd=10, lower=FALSE) * 2
+### Add in exceptions to the default size-based grazing preference
+# Diatoms scaling (highest grazing for small diatoms, then scaling down for larger diatoms)
+# trying to do this in a way that makes it not sensitive to nDIAT=3
+idx = which(str_detect(ss$sname, 'diat'))
+# first third
+gf[idx[1:floor(nDIAT/3)],] = gf[idx[1:floor(nDIAT/3)],] * diat_grazing_scaling
+# second third
+gf[idx[ceiling(nDIAT/3):floor(nDIAT*2/3)],] = gf[idx[ceiling(nDIAT/3):floor(nDIAT*2/3)],] *
+                                              (diat_grazing_scaling/diat_grazing_scaling)
+# final third
+gf[idx[ceiling(nDIAT*2/3):nDIAT],] = gf[idx[ceiling(nDIAT*2/3):nDIAT],] *
+                                              (diat_grazing_scaling * lg_diat_grazing_scaling)
 
-# normalize grazing preference by column
+# Diatom grazing by microzooplankton
+idy = seq_len(nMicro)
+gf[idx,idy] = gf[idx,idy] * microZ_diat_grazing
+
+# scaling of implicit calcifiers
+gf[which(ss$imp_calcifier),] = gf[which(ss$imp_calcifier),]  * calcifiers_grazing_scaling
+
+# scaling of zooplankton feeding on zooplankton
+gf[(nP+1):(nP+nZ),] = gf[(nP+1):(nP+nZ),] * zoo_grazing_scaling
+
+# scaling of predation on microzooplankton
+gf[(nP+1):(nP+nMicro),] = gf[(nP+1):(nP+nMicro),] * microzoo_grazing_scaling
+
+# set zeros to be NAs to avoid making excess computation
+gf[which(gf == 0)] = NA
+
+### normalize grazing preference by column
 gf <- apply(gf, 2, function(x){ 
 	x <- x / sum(x, na.rm=TRUE)
 	return(x)
 })	
+
 
 # scale grazing umax by grazing function
 g_z_umax <- rep(sz$z_umax_base, each=(nP+nZ)) * gf
@@ -342,7 +367,7 @@ sg <- left_join(sg, data.frame(sname2=sz$sname,
 tmp = sg[str_detect(sg$sname1, "diat"),]
 tmp = left_join(tmp, data.frame(sname1=ss$sname, mass_ugC=ss$mass_ugC, stringsAsFactors=FALSE), by="sname1")
 sg[str_detect(sg$sname1, "diat"), "graze_poc"] = tmp$graze_poc * tmp$mass_ugC^diat_graze_poc_beta * diat_graze_poc_const
-sg[sg$sname1=="pp", "graze_poc"] = 0.07
+sg[sg$sname1=="pp", "graze_poc"] = 0.01
 
 
 sg$graze_zoo <- ifelse(sg$sname2 %in% sg[sg$ESD_mm < 2,"sname"], 0.3, 0.25)
@@ -355,24 +380,12 @@ sg[idx,c('graze_doc','graze_poc')] <- sg[idx,c('graze_doc','graze_poc')] / (rowS
 # increase fraction of f_zoo_detr when prey are diatoms
 sg[str_detect(sg$sname1, "diat"), "f_zoo_detr"] <- sg[str_detect(sg$sname1, "diat"), "f_zoo_detr"] * zoo_detr_diatom_scaling
 
-# scale down max grazing of diatoms & implicit calcifiers
-sg[sg$sname1 %in% ss[ss$imp_calcifier,'sname'],"z_umax_0_per_day"] <-
-    sg[sg$sname1 %in% ss[ss$imp_calcifier,'sname'],"z_umax_0_per_day"]  * calcifiers_grazing_scaling
-
-tmp = dplyr::arrange(ss[str_detect(ss$sname, "diat"),], mass_ugC)
-largest_diatom = tmp[nrow(tmp),"sname"]
-sg[sg$sname1 == largest_diatom,"z_umax_0_per_day"] <- sg[sg$sname1 == largest_diatom,"z_umax_0_per_day"]  * diat_grazing_scaling
-
-
-# scale down max grazing of zooplankton
-sg[str_detect(sg$sname1, "zoo"),"z_umax_0_per_day"] <- sg[str_detect(sg$sname1, "zoo"),"z_umax_0_per_day"] * zoo_grazing_scaling
-
 sg <- dplyr::rename(sg, auto_ind.1.=auto_ind, zoo_ind.1.=zoo_ind)
 
 
 # --- fill in the grazing array ---
 tmp_g <- data.frame(type="grazing", index1=rep(1:max_grazer_prey_cnt, times=nZ),
-					index2=rep(1:nZ, each=max_grazer_prey_cnt), stringsAsFactors=FALSE)
+                                        index2=rep(1:nZ, each=max_grazer_prey_cnt), stringsAsFactors=FALSE)
 
 sg <- left_join(tmp_g, sg, by=c("type", "index1", "index2"))
 
@@ -380,11 +393,11 @@ sg <- left_join(tmp_g, sg, by=c("type", "index1", "index2"))
 # full in NAs with nulls and zeros
 sg[which(is.na(sg$sname1)),c("sname1", "sname2", "sname", "lname")] <- "null"
 
-sg[which(is.na(sg$auto_ind_cnt)), 
-	c("auto_ind_cnt", "zoo_ind_cnt", "z_umax_0_per_day", "z_grz", "graze_zoo", 
-	"graze_poc", "graze_doc", "f_zoo_detr")] <- 0
+sg[which(is.na(sg$auto_ind_cnt)),
+        c("auto_ind_cnt", "zoo_ind_cnt", "z_umax_0_per_day", "z_grz", "graze_zoo",
+        "graze_poc", "graze_doc", "f_zoo_detr")] <- 0
 
-# grazing function must be either 1 or 2, can't be 0	
+# grazing function must be either 1 or 2, can't be 0
 sg[which(is.na(sg$grazing_function)), "grazing_function"] <- 1
 
 
