@@ -252,7 +252,6 @@ sz$lname = c(str_c("Microzooplankton ", seq_len(nMicro)), str_c("Mesozooplankton
 
 # biovolume
 sz$vol_mm3 <- 4/3 * pi * (sz$ESD_mm / 2) ^ 3
-vol_to_ESD <- 2*(3/4 * 1/pi)^(1/3)
 
 sz$mass_mgC <- ifelse(sz$ESD_mm > 0.1,
 0.06281 * sz$ESD_mm ^ 3.0, # Pitt et al. 2013, comparative physiology - for mesozooplankton
@@ -260,24 +259,24 @@ sz$mass_mgC <- ifelse(sz$ESD_mm > 0.1,
 
 sz$Ea <- zoo_Ea
 
-sz$z_mort_0_per_day <- z_mort_const * sz$ESD_mm ^ z_mort_beta
-## this is equivalent to:
-# sz$z_mort_0_per_day <- z_mort_const * (vol_to_ESD^z_mort_beta) * (sz$vol_mm3 ^ (z_mort_beta*1/3))
+# linear mortality
+# set z_mort_0_per_day to 0
+# introduce basal respiration rate
+sz$z_mort_0_per_day <- 0.0
+sz$basal_metabolic_rate_per_day <- z_mort_const * sz$ESD_mm ^ z_mort_beta
 
 #quadratic mortality
 sz$z_mort2_0_per_day <- z_mort2_const * sz$ESD_mm ^ z_mort2_beta
-## this is equivalent to:
-# sz$z_mort2_0_per_day <- z_mort2_const * (vol_to_ESD^z_mort2_beta) * (sz$vol_mm3 ^ (z_mort2_beta*1/3))
+#sz$z_mort2_0_per_day <- mesozoo_mort2_const * sz$ESD_mm ^ mesozoo_mort2_beta
+#sz[1:nMicro,"z_mort2_0_per_day"] <- microzoo_mort2
 sz[nZ,"z_mort2_0_per_day"] <- sz[nZ,"z_mort2_0_per_day"] * lg_zoo_mort2_scaling
-
 
 sz$loss_thres <- zoo_loss_thres
 
 sz$z_umax_base <- umax_const * sz$ESD_mm ^ umax_beta
-## this is equivalent to:
-# sz$z_umax_base <- umax_const * (vol_to_ESD^umax_beta) * (sz$vol_mm3 ^ (umax_beta*1/3))
 
 sz$z_grz <- km_const * sz$ESD_mm ^ km_beta
+
 
 # routing of grazing to POC (equivalent to egestion)
 # make sure it is less than assimilation efficiency
