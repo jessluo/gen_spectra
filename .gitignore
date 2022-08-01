@@ -2,6 +2,6 @@
 test_cases/plots/*
 test_cases/data/*
 Rplots.pdf
-
 .Rproj.user
 .Rhistory
+initial_conditions/*.nc
