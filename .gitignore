@@ -1,10 +1,7 @@
 *.Rproj*
-plots/*
-data/*
 test_cases/plots/*
 test_cases/data/*
-
-*.input
+Rplots.pdf
 
 .Rproj.user
 .Rhistory
