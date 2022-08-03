@@ -4,7 +4,7 @@
 import numpy as np
 import xarray as xr
 import pandas as pd
-import os
+import os, subprocess
 
 # --- set names ---
 sp_names = ['pp', 'mp1', 'mp2', 'mp3', 'mp4']

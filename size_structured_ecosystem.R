@@ -24,9 +24,10 @@ dir.create(dir)
 file.copy(from="input_parms.R", to=str_c(dir, "/input_parms.R"))
 file.copy(from="gen_input_data.R", to=str_c(dir, "/gen_input_data.R"))
 file.copy(from="gen_marbl_input_file.R", to=str_c(dir, "/gen_marbl_input_file.R"))
+file.copy(from="analyze_model_setup.R", to=str_c(dir, "/analyze_model_setup.R"))
 
 setwd(dir)
 source("gen_input_data.R")
 source("gen_marbl_input_file.R")
-
+source("analyze_model_setup.R")
 
