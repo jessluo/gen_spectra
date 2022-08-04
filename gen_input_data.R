@@ -259,7 +259,7 @@ sz$Ea <- zoo_Ea
 # set z_mort_0_per_day to 0
 # introduce basal respiration rate
 sz$z_mort_0_per_day <- 0.0
-sz$basal_metabolic_rate_per_day <- z_mort_const * sz$ESD_mm ^ z_mort_beta
+sz$basal_respiration_rate_per_day <- z_mort_const * sz$ESD_mm ^ z_mort_beta
 
 #quadratic mortality
 sz$z_mort2_0_per_day <- z_mort2_const * sz$ESD_mm ^ z_mort2_beta

@@ -19,7 +19,7 @@ namelist_vars_autotrophs <- c("sname", "lname", "Nfixer", "imp_calcifier",
 "agg_rate_max", "agg_rate_min", "loss_poc", "temp_func_form_opt", "Ea")
 
 namelist_vars_zooplankton <- c("sname", "lname", "z_mort_0_per_day", 
-"basal_metabolic_rate_per_day", "loss_thres", "z_mort2_0_per_day",
+"basal_respiration_rate_per_day", "loss_thres", "z_mort2_0_per_day",
 "temp_func_form_opt", "Ea")
 
 namelist_vars_grazing <- c("sname", "lname", "auto_ind_cnt", "zoo_ind_cnt", 
