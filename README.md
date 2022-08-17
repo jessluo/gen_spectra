@@ -23,6 +23,23 @@ You can modify parameters in `input_parms.R`, and generate plots that visualizes
 
 The `size_structured_ecosystem.R` script is a wrapper script that takes one input, a casename, and creates a new copy of the four main R scripts in a new case folder and runs the scripts. This can assist in setting up new parameter cases.
 
+### To replicate the settings in Negrete-García et al.:
+Add the following to the `user_nl_marbl` file:
+```
+lo2_consumption_scalef = .false.
+parm_SiO2_diss =   7.7000000000000000e+04
+parm_FeLig_scavenge_rate0 = 1.4
+parm_Fe_scavenge_rate0 = 18.0
+parm_scalelen_vals(2) = 3.0
+parm_scalelen_vals(3) = 4.5
+parm_scalelen_vals(4) = 5.5
+```
+NB: make sure that the CORE2_IAF datm stream is using `coszen` for the time interpolation for SWDN, or else the results will be incorrect.
+
+Run configuration:
+We also recommend changing `NTASKS_OCN=324` to optimize the PE layout for the additional ecosystem tracers.
+
+
 ### Reference:
 Gabriela Negrete-García, Jessica Y. Luo,  Matthew C. Long,  Keith Lindsay,  Michael Levy, Andrew D. Barton. Plankton energy flows using a global size-structured and trait-based model. Preprint. doi: https://doi.org/10.1101/2022.02.01.478546
 
