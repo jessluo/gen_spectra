@@ -177,10 +177,10 @@ pdf("plots/dist_gaussian.pdf",height=4,width=6)
 plot(y~x, type='l', ylab="Gaussian pdf", xlab="Predator-prey size ratio")
 dev.off()
 
-require(rmutil)
-pdf("plots/dist_laplace.pdf",height=4,width=6)
-plot(dlaplace(x,m=opt_pred_prey_ratio,s=sz$pred_prey_sd[1])~x, type='l', ylab = "Laplace pdf", xlab="Predator-prey size ratio")
-dev.off()
+#require(rmutil)
+#pdf("plots/dist_laplace.pdf",height=4,width=6)
+#plot(dlaplace(x,m=opt_pred_prey_ratio,s=sz$pred_prey_sd[1])~x, type='l', ylab = "Laplace pdf", xlab="Predator-prey size ratio")
+#dev.off()
 
 ### -- Code to generate the feeding kernel (before adjustments) -- ### 
 fk = data.frame(x= rep(x, times=nrow(sz)))
